@@ -1,0 +1,6 @@
+env: local
+http_server: 
+  address: "localhost"
+  port: 9000
+  timeout: 4s
+  idle_timeout: 60s
