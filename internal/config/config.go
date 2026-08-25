@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
+	Storage    string `yaml: "storage" env-default:"postgres://postgres:postgres@localhost:5440/payment_gateway"`
 	HTTPServer `yaml:"http_server"`
 }
 
