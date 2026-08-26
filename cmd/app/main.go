@@ -37,4 +37,5 @@ func main() {
 
 	logger.Info("Start app with config", slog.String("env", config.Env))
 	logger.Debug("Level logs this app is Debug")
+
 }

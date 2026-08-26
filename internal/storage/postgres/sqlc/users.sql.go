@@ -9,20 +9,68 @@ import (
 	"context"
 )
 
+const createUser = `-- name: CreateUser :one
+  INSERT INTO users (
+      username,
+      password_hash,
+      email,
+      role
+  )
+  VALUES (
+      $1,
+      $2,
+      $3,
+      $4
+  )
+  RETURNING id, username, password_hash, email, role, created_at, updated_at
+`
+
+type CreateUserParams struct {
+	Username     string
+	PasswordHash string
+	Email        string
+	Role         string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.Username,
+		arg.PasswordHash,
+		arg.Email,
+		arg.Role,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.PasswordHash,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deleteUser = `-- name: DeleteUser :exec
+  DELETE FROM users
+  WHERE id = $1
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteUser, id)
+	return err
+}
+
 const getUserByID = `-- name: GetUserByID :one
-  SELECT id, email
+  SELECT id
   FROM users
   WHERE id = $1
 `
 
-type GetUserByIDRow struct {
-	ID    int64
-	Email string
-}
-
-func (q *Queries) GetUserByID(ctx context.Context, id int64) (GetUserByIDRow, error) {
+func (q *Queries) GetUserByID(ctx context.Context, id int64) (int64, error) {
 	row := q.db.QueryRow(ctx, getUserByID, id)
-	var i GetUserByIDRow
-	err := row.Scan(&i.ID, &i.Email)
-	return i, err
+	var id_2 int64
+	err := row.Scan(&id_2)
+	return id_2, err
 }
