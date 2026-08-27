@@ -2,29 +2,31 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"payment_gateway/internal/storage"
 	"payment_gateway/internal/storage/postgres/sqlc"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var ErrEmptyDatabaseURL = errors.New("empty database URL")
+
 type Storage struct {
 	pool    *pgxpool.Pool
-	Queries *sqlc.Queries
+	queries *sqlc.Queries
 }
 
 func SetupDatabase(ctx context.Context, url string, maxConns int32) (*Storage, error) {
 
 	if url == "" {
-		return nil, storage.ErrEmptyUrl
+		return nil, ErrEmptyDatabaseURL
 	}
 
 	cfg, err := pgxpool.ParseConfig(url)
 	if err != nil {
 		return nil, fmt.Errorf("parse database url: %w", err)
 	}
-	if maxConns < 0 {
+	if maxConns > 0 {
 		cfg.MaxConns = maxConns
 	}
 
@@ -37,7 +39,7 @@ func SetupDatabase(ctx context.Context, url string, maxConns int32) (*Storage, e
 		return nil, fmt.Errorf("ping: %w", err)
 	}
 
-	return &Storage{pool: pool, Queries: sqlc.New(pool)}, nil
+	return &Storage{pool: pool, queries: sqlc.New(pool)}, nil
 }
 
 func (s *Storage) Close() {

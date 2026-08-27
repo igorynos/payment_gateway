@@ -2,40 +2,46 @@ package main
 
 import (
 	"context"
-	"io"
 	"log"
 	"log/slog"
 	"net/http"
 
+	"payment_gateway/internal/app"
 	"payment_gateway/internal/config"
-	"payment_gateway/internal/logger"
-	"payment_gateway/internal/storage/postgres"
+	applogger "payment_gateway/internal/lib/logger"
 
 	"github.com/joho/godotenv"
 )
 
-func say_hello(w http.ResponseWriter, _ *http.Request) {
-	io.WriteString(w, "hello")
-}
-
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Can't to load .env")
+		log.Fatal("failed to load .env")
 	}
 
-	config := config.LoadConfig()
-	logger := logger.SettupLogger(config.Env)
+	cfg := config.LoadConfig()
+	logger := applogger.SettupLogger(cfg.Env)
 
-	ctx := context.Background()
-
-	db, err := postgres.SetupDatabase(ctx, config.Storage, 10)
+	application, err := app.New(
+		context.Background(),
+		cfg,
+		logger,
+	)
 	if err != nil {
-		logger.Error("failed to connect to database", slog.Any("error", err))
+		logger.Error(
+			"failed to initialize application",
+			slog.Any("error", err),
+		)
 		return
 	}
-	defer db.Close()
+	defer application.Close()
 
-	logger.Info("Start app with config", slog.String("env", config.Env))
-	logger.Debug("Level logs this app is Debug")
+	logger.Info("starting application")
 
+	if err := application.Run(); err != nil &&
+		err != http.ErrServerClosed {
+		logger.Error(
+			"application stopped",
+			slog.Any("error", err),
+		)
+	}
 }
