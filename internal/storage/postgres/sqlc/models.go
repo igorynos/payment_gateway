@@ -8,6 +8,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Payment struct {
+	ID                pgtype.UUID
+	Invoice           string
+	Status            string
+	Amount            pgtype.Numeric
+	Currency          string
+	Provider          string
+	ProviderPaymentID pgtype.Text
+	CreatedAt         pgtype.Timestamptz
+	UpdatedAt         pgtype.Timestamptz
+}
+
 type User struct {
 	ID           int64
 	Username     string
