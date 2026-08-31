@@ -46,11 +46,6 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, GetByIDResponse{
 		Response: response.OK(),
-		User: UserResponse{
-			ID:       foundUser.ID,
-			Username: foundUser.Username,
-			Email:    foundUser.Email,
-			Role:     string(foundUser.Role),
-		},
+		User:     newUserResponse(foundUser),
 	})
 }
