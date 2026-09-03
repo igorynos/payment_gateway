@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -10,7 +11,7 @@ import (
 
 type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
-	Storage    string `env:"DATABASEURL" env-required:"true"`
+	Storage    DATABASEURL
 	HTTPServer `yaml:"http_server"`
 }
 
@@ -19,6 +20,25 @@ type HTTPServer struct {
 	Port         int           `yaml:"port" env-default:"9000"`
 	Timeout      time.Duration `yaml:"timeout" env-default:"3s"`
 	Idle_timeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
+}
+
+type DATABASEURL struct {
+	Name     string `env:"DATABASE_NAME" env-required:"true"`
+	User     string `env:"DATABASE_USER" env-required:"true"`
+	Password string `env:"DATABASE_PASSWORD" env-required:"true"`
+	Host     string `env:"DATABASE_HOST" env-required:"true"`
+	Port     string `env:"DATABASE_PORT" env-required:"true"`
+}
+
+func (d DATABASEURL) URL() string {
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s",
+		d.User,
+		d.Password,
+		d.Host,
+		d.Port,
+		d.Name,
+	)
 }
 
 func LoadConfig() *Config {

@@ -1,9 +1,13 @@
 package payment
 
 import (
+	"errors"
 	"time"
+)
 
-	"github.com/jackc/pgx/v5/pgtype"
+var (
+	ErrNotFound     = errors.New("payment not found")
+	ErrInvalidInput = errors.New("invalid payment input")
 )
 
 type Status string
@@ -25,10 +29,10 @@ const (
 )
 
 type Payment struct {
-	ID                pgtype.UUID
+	ID                string
 	Invoice           string
 	Status            Status
-	Amount            pgtype.Numeric
+	Amount            int64
 	Currency          Carrency
 	Provider          string
 	ProviderPaymentID string
@@ -38,17 +42,17 @@ type Payment struct {
 
 type CreateParams struct {
 	Invoice           string
-	Status            string
-	Amount            pgtype.Numeric
-	Currency          string
+	Status            Status
+	Amount            int64
+	Currency          Carrency
 	Provider          string
-	ProviderPaymentID pgtype.Text
+	ProviderPaymentID string
 }
 
 type CreateInput struct {
 	Invoice           string
 	Status            Status
-	Amount            pgtype.Numeric
+	Amount            int64
 	Currency          Carrency
 	Provider          string
 	ProviderPaymentID string

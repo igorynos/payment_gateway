@@ -4,18 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 
 	"payment_gateway/internal/payment"
 	"payment_gateway/internal/storage/postgres/sqlc"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-)
-
-var (
-	ErrNotFound      = errors.New("payment not found")
-	ErrAlreadyExists = errors.New("payment already exists")
-	ErrInvalidInput  = errors.New("invalid payment input")
 )
 
 type PaymentRepository struct {
@@ -37,48 +32,71 @@ func (r *PaymentRepository) Create(
 	dbPayment, err := r.queries.CreatePayment(
 		ctx,
 		sqlc.CreatePaymentParams{
-			Invoice:           params.Invoice,
-			Status:            params.Status,
-			Amount:            params.Amount,
-			Currency:          params.Currency,
-			Provider:          params.Provider,
-			ProviderPaymentID: params.ProviderPaymentID,
+			Invoice: params.Invoice,
+			Status:  string(params.Status),
+			Amount: pgtype.Numeric{
+				Int:   big.NewInt(params.Amount),
+				Valid: true,
+			},
+			Currency: string(params.Currency),
+			Provider: params.Provider,
+			ProviderPaymentID: pgtype.Text{
+				String: params.ProviderPaymentID,
+				Valid:  params.ProviderPaymentID != "",
+			},
 		},
 	)
 	if err != nil {
-		return payment.Payment{}, ErrInvalidInput
+		return payment.Payment{}, fmt.Errorf("create payment: %w", err)
 	}
-	return toDomainPayment(dbPayment), nil
+	return toDomainPayment(dbPayment)
 }
 
 func (r *PaymentRepository) GetPaymentByID(
 	ctx context.Context,
-	ID pgtype.UUID,
+	id string,
 ) (payment.Payment, error) {
+	var paymentID pgtype.UUID
+	if err := paymentID.Scan(id); err != nil {
+		return payment.Payment{}, payment.ErrInvalidInput
+	}
+
 	dbPayment, err := r.queries.GetPaymentByID(
 		ctx,
-		ID,
+		paymentID,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return payment.Payment{}, ErrNotFound
+		return payment.Payment{}, payment.ErrNotFound
 	}
 	if err != nil {
 		return payment.Payment{}, fmt.Errorf("get payment by ID: %w", err)
 	}
-	return toDomainPayment(dbPayment), nil
+	return toDomainPayment(dbPayment)
 }
 
-func toDomainPayment(dbPayment sqlc.Payment) payment.Payment {
+func toDomainPayment(dbPayment sqlc.Payment) (payment.Payment, error) {
+	if !dbPayment.ID.Valid {
+		return payment.Payment{}, errors.New("payment ID is NULL")
+	}
+
+	amount, err := dbPayment.Amount.Int64Value()
+	if err != nil {
+		return payment.Payment{}, fmt.Errorf("convert payment amount: %w", err)
+	}
+	if !amount.Valid {
+		return payment.Payment{}, errors.New("payment amount is NULL")
+	}
+
 	result := payment.Payment{
-		ID:                dbPayment.ID,
+		ID:                dbPayment.ID.String(),
 		Invoice:           dbPayment.Invoice,
 		Status:            payment.Status(dbPayment.Status),
-		Amount:            dbPayment.Amount,
+		Amount:            amount.Int64,
 		Currency:          payment.Carrency(dbPayment.Currency),
 		Provider:          dbPayment.Provider,
 		ProviderPaymentID: dbPayment.ProviderPaymentID.String,
 		CreatedAt:         dbPayment.CreatedAt.Time,
 		UpdatedAt:         dbPayment.UpdatedAt.Time,
 	}
-	return result
+	return result, nil
 }
