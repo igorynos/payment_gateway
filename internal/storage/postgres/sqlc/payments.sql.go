@@ -86,3 +86,36 @@ func (q *Queries) GetPaymentByID(ctx context.Context, id pgtype.UUID) (Payment, 
 	)
 	return i, err
 }
+
+const updatePaymentStatusByID = `-- name: UpdatePaymentStatusByID :one
+  UPDATE payments
+  SET
+  status = $1,
+  updated_at = NOW()
+  WHERE id = $2
+  AND provider = $3
+  RETURNING id, invoice, status, amount, currency, provider, provider_payment_id, created_at, updated_at
+`
+
+type UpdatePaymentStatusByIDParams struct {
+	Status   string
+	ID       pgtype.UUID
+	Provider string
+}
+
+func (q *Queries) UpdatePaymentStatusByID(ctx context.Context, arg UpdatePaymentStatusByIDParams) (Payment, error) {
+	row := q.db.QueryRow(ctx, updatePaymentStatusByID, arg.Status, arg.ID, arg.Provider)
+	var i Payment
+	err := row.Scan(
+		&i.ID,
+		&i.Invoice,
+		&i.Status,
+		&i.Amount,
+		&i.Currency,
+		&i.Provider,
+		&i.ProviderPaymentID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

@@ -57,3 +57,15 @@ type CreateInput struct {
 	Provider          string
 	ProviderPaymentID string
 }
+
+type StatusUpdateParams struct {
+	ID       string
+	Provider string
+	Status   Status
+}
+
+type StatusUpdateInput struct {
+	ID       string
+	Provider string
+	Status   Status
+}

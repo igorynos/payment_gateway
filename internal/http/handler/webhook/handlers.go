@@ -1,4 +1,4 @@
-package paymenthandler
+package webhookhandler
 
 import (
 	"context"
@@ -8,14 +8,6 @@ import (
 )
 
 type PaymentService interface {
-	CreatePayment(
-		ctx context.Context,
-		input payment.CreateInput,
-	) (payment.Payment, error)
-	GetPaymentByID(
-		ctx context.Context,
-		id string,
-	) (payment.Payment, error)
 	UpdateStatusPaymentByID(
 		ctx context.Context,
 		input payment.StatusUpdateInput,

@@ -74,6 +74,34 @@ func (r *PaymentRepository) GetPaymentByID(
 	return toDomainPayment(dbPayment)
 }
 
+func (r *PaymentRepository) UpdatePaymentStatusByID(
+	ctx context.Context,
+	params payment.StatusUpdateParams,
+) (payment.Payment, error) {
+	var paymentID pgtype.UUID
+	if err := paymentID.Scan(params.ID); err != nil {
+		return payment.Payment{}, payment.ErrInvalidInput
+	}
+	dbPayment, err := r.queries.UpdatePaymentStatusByID(
+		ctx,
+		sqlc.UpdatePaymentStatusByIDParams{
+			Status:   string(params.Status),
+			ID:       paymentID,
+			Provider: params.Provider,
+		},
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return payment.Payment{}, payment.ErrNotFound
+	}
+	if err != nil {
+		return payment.Payment{}, fmt.Errorf(
+			"update payment status by ID: %w",
+			err,
+		)
+	}
+	return toDomainPayment(dbPayment)
+}
+
 func toDomainPayment(dbPayment sqlc.Payment) (payment.Payment, error) {
 	if !dbPayment.ID.Valid {
 		return payment.Payment{}, errors.New("payment ID is NULL")

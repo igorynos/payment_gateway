@@ -10,16 +10,17 @@ import (
 )
 
 type Config struct {
-	Env        string `yaml:"env" env-default:"local"`
-	Storage    DATABASEURL
-	HTTPServer `yaml:"http_server"`
+	Env           string `yaml:"env" env-default:"local"`
+	Storage       DATABASEURL
+	HTTPServer    HTTPServer `yaml:"http_server"`
+	WebhookServer HTTPServer `yaml:"webhook_server"`
 }
 
 type HTTPServer struct {
-	Address      string        `yaml:"address" env-default:"localhost"`
-	Port         int           `yaml:"port" env-default:"9000"`
-	Timeout      time.Duration `yaml:"timeout" env-default:"3s"`
-	Idle_timeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
+	Address     string        `yaml:"address" env-default:"localhost"`
+	Port        int           `yaml:"port" env-default:"9000"`
+	Timeout     time.Duration `yaml:"timeout" env-default:"3s"`
+	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
 }
 
 type DATABASEURL struct {

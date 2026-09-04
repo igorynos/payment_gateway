@@ -21,3 +21,12 @@
   SELECT *
   FROM payments
   WHERE id = $1;
+
+-- name: UpdatePaymentStatusByID :one
+  UPDATE payments
+  SET
+  status = sqlc.arg(status),
+  updated_at = NOW()
+  WHERE id = sqlc.arg(id)
+  AND provider = sqlc.arg(provider)
+  RETURNING *;
