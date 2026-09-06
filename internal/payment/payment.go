@@ -69,3 +69,12 @@ type StatusUpdateInput struct {
 	Provider string
 	Status   Status
 }
+
+type StatusChangeCommand struct {
+	EventID    string    `json:"event_id"`
+	PaymentID  string    `json:"payment_id"`
+	Provider   string    `json:"provider"`
+	Status     Status    `json:"status"`
+	OccurredAt time.Time `json:"occurred_at"`
+	Version    int       `json:"version"`
+}

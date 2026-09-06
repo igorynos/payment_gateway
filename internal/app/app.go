@@ -12,15 +12,17 @@ import (
 	userhandler "payment_gateway/internal/http/handler/user"
 	webhookhandler "payment_gateway/internal/http/handler/webhook"
 	httprouter "payment_gateway/internal/http/router"
+	"payment_gateway/internal/kafka/producer"
 	"payment_gateway/internal/payment"
 	"payment_gateway/internal/storage/postgres"
 	"payment_gateway/internal/user"
 )
 
 type App struct {
-	apiServer     *http.Server
-	webhookServer *http.Server
-	storage       *postgres.Storage
+	apiServer           *http.Server
+	webhookServer       *http.Server
+	storage             *postgres.Storage
+	kafkaProducerClient *producer.Client
 }
 
 func New(
@@ -41,7 +43,27 @@ func New(
 	paymentRepository := postgres.NewPaymentRepository(db)
 	paymentService := payment.NewService(paymentRepository)
 	paymentHandler := paymenthandler.New(log, paymentService)
-	webhookHandler := webhookhandler.New(log, paymentService)
+
+	kafkaProducerClient, err := producer.NewClient(
+		cfg.Kafka.Brokers,
+	)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"create Kafka producer client: %w",
+			err,
+		)
+	}
+
+	paymentStatusPublisher :=
+		producer.NewPublisher(
+			kafkaProducerClient,
+			cfg.Kafka.PaymentStatusTopic,
+		)
+
+	webhookHandler := webhookhandler.New(
+		log,
+		paymentStatusPublisher,
+	)
 
 	apiRouter := httprouter.New(
 		log,
@@ -78,9 +100,10 @@ func New(
 		IdleTimeout:  cfg.WebhookServer.IdleTimeout,
 	}
 	return &App{
-		apiServer:     apiServer,
-		webhookServer: webhookServer,
-		storage:       db,
+		apiServer:           apiServer,
+		webhookServer:       webhookServer,
+		storage:             db,
+		kafkaProducerClient: kafkaProducerClient,
 	}, nil
 
 }
@@ -104,6 +127,10 @@ func (a *App) Run() error {
 }
 
 func (a *App) Close() {
+	if a.kafkaProducerClient != nil {
+		a.kafkaProducerClient.Close()
+	}
+
 	if a.storage != nil {
 		a.storage.Close()
 	}

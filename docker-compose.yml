@@ -11,9 +11,19 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+# postgres://postgres:postgres@localhost:5440/payment_gateway
   kafka:
     image: apache/kafka:3.9.1
     container_name: payment_gateway_kafka
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -31,7 +41,37 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
 
-# postgres://postgres:postgres@localhost:5440/payment_gateway
+  kafka-init:
+    image: apache/kafka:3.9.1
+    container_name: payment_gateway_kafka_init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command:
+      - /opt/kafka/bin/kafka-topics.sh
+      - --bootstrap-server
+      - kafka:29092
+      - --create
+      - --if-not-exists
+      - --topic
+      - payment.status-change.requested
+      - --partitions
+      - "1"
+      - --replication-factor
+      - "1"
+
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    container_name: payment_gateway_kafka_ui
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+
 
 volumes:
   postgres_data:

@@ -3,28 +3,27 @@ package webhookhandler
 import (
 	"context"
 	"log/slog"
-
-	"payment_gateway/internal/payment"
 )
 
-type PaymentService interface {
-	UpdateStatusPaymentByID(
+type Publisher interface {
+	Publish(
 		ctx context.Context,
-		input payment.StatusUpdateInput,
-	) (payment.Payment, error)
+		key string,
+		message any,
+	) error
 }
 
 type Handler struct {
-	log     *slog.Logger
-	service PaymentService
+	log       *slog.Logger
+	publisher Publisher
 }
 
 func New(
 	log *slog.Logger,
-	service PaymentService,
+	publisher Publisher,
 ) *Handler {
 	return &Handler{
-		log:     log,
-		service: service,
+		log:       log,
+		publisher: publisher,
 	}
 }

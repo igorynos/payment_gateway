@@ -10,3 +10,9 @@ webhook_server:
   port: 9001
   timeout: 4s
   idle_timeout: 60s
+
+kafka:
+    brokers:
+      - localhost:9092
+    payment_status_topic: payment.status-change.requested
+    consumer_group: payment-status-updater

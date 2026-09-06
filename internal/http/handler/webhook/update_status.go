@@ -2,6 +2,7 @@ package webhookhandler
 
 import (
 	"net/http"
+	"time"
 
 	"payment_gateway/internal/lib/api/response"
 	"payment_gateway/internal/payment"
@@ -12,8 +13,10 @@ import (
 )
 
 type UpdateStatusRequest struct {
-	PaymentID string `json:"payment_id" validate:"required"`
-	Status    string `json:"status" validate:"required"`
+	EventID    string    `json:"event_id" validate:"required"`
+	PaymentID  string    `json:"payment_id" validate:"required"`
+	Status     string    `json:"status" validate:"required"`
+	OccurredAt time.Time `json:"occurred_at" validate:"required"`
 }
 
 func (h *Handler) UpdateStatusByID(
@@ -33,18 +36,36 @@ func (h *Handler) UpdateStatusByID(
 		render.JSON(w, r, response.Error("invalid request"))
 		return
 	}
-	_, err := h.service.UpdateStatusPaymentByID(
+
+	command := payment.StatusChangeCommand{
+		EventID:    req.EventID,
+		PaymentID:  req.PaymentID,
+		Provider:   provider,
+		Status:     payment.Status(req.Status),
+		OccurredAt: req.OccurredAt,
+		Version:    1,
+	}
+
+	err := h.publisher.Publish(
 		r.Context(),
-		payment.StatusUpdateInput{
-			ID:       req.PaymentID,
-			Provider: provider,
-			Status:   payment.Status(req.Status),
-		},
+		command.PaymentID,
+		command,
 	)
+
 	if err != nil {
-		h.log.Error("failed to process webhook", "error", err)
-		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, response.Error("failed to process webhook"))
+		h.log.Error(
+			"failed to publish payment status change",
+			"payment_id", command.PaymentID,
+			"event_id", command.EventID,
+			"error", err,
+		)
+
+		render.Status(r, http.StatusServiceUnavailable)
+		render.JSON(
+			w,
+			r,
+			response.Error("failed to enqueue webhook"),
+		)
 		return
 	}
 

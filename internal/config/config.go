@@ -14,6 +14,7 @@ type Config struct {
 	Storage       DATABASEURL
 	HTTPServer    HTTPServer `yaml:"http_server"`
 	WebhookServer HTTPServer `yaml:"webhook_server"`
+	Kafka         KafkaConfig
 }
 
 type HTTPServer struct {
@@ -40,6 +41,12 @@ func (d DATABASEURL) URL() string {
 		d.Port,
 		d.Name,
 	)
+}
+
+type KafkaConfig struct {
+	Brokers            []string `yaml:"brokers"`
+	PaymentStatusTopic string   `yaml:"payment_status_topic"`
+	ConsumerGroup      string   `yaml:"consumer_group"`
 }
 
 func LoadConfig() *Config {
