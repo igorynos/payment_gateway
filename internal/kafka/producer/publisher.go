@@ -20,6 +20,18 @@ type Publisher struct {
 	topic    string
 }
 
+type Publishers struct {
+	PaymentStatus *Publisher
+	PaymentCreate *Publisher
+	PaymentGet    *Publisher
+}
+
+type PublishersConfig struct {
+	PaymentStatusTopic string
+	PaymentCreateTopic string
+	PaymentGetTopic    string
+}
+
 func (p *Publisher) Publish(
 	ctx context.Context,
 	key string,
@@ -50,5 +62,25 @@ func NewPublisher(
 	return &Publisher{
 		producer: producer,
 		topic:    topic,
+	}
+}
+
+func NewPublishers(
+	producer RecordProducer,
+	config PublishersConfig,
+) *Publishers {
+	return &Publishers{
+		PaymentStatus: NewPublisher(
+			producer,
+			config.PaymentStatusTopic,
+		),
+		PaymentCreate: NewPublisher(
+			producer,
+			config.PaymentCreateTopic,
+		),
+		PaymentGet: NewPublisher(
+			producer,
+			config.PaymentGetTopic,
+		),
 	}
 }

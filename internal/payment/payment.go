@@ -20,12 +20,12 @@ const (
 	StatusCanceled   Status = "CANCELED"
 )
 
-type Carrency string
+type Currency string
 
 const (
-	Rub Carrency = "RUB"
-	Usd Carrency = "USD"
-	Eur Carrency = "EUR"
+	Rub Currency = "RUB"
+	Usd Currency = "USD"
+	Eur Currency = "EUR"
 )
 
 type Payment struct {
@@ -33,7 +33,7 @@ type Payment struct {
 	Invoice           string
 	Status            Status
 	Amount            int64
-	Currency          Carrency
+	Currency          Currency
 	Provider          string
 	ProviderPaymentID string
 	CreatedAt         time.Time
@@ -44,7 +44,7 @@ type CreateParams struct {
 	Invoice           string
 	Status            Status
 	Amount            int64
-	Currency          Carrency
+	Currency          Currency
 	Provider          string
 	ProviderPaymentID string
 }
@@ -53,7 +53,7 @@ type CreateInput struct {
 	Invoice           string
 	Status            Status
 	Amount            int64
-	Currency          Carrency
+	Currency          Currency
 	Provider          string
 	ProviderPaymentID string
 }
@@ -75,6 +75,24 @@ type StatusChangeCommand struct {
 	PaymentID  string    `json:"payment_id"`
 	Provider   string    `json:"provider"`
 	Status     Status    `json:"status"`
+	OccurredAt time.Time `json:"occurred_at"`
+	Version    int       `json:"version"`
+}
+
+type CreateCommand struct {
+	RequestID         string    `json:"request_id"`
+	Invoice           string    `json:"invoice"`
+	Amount            int64     `json:"amount"`
+	Currency          Currency  `json:"currency"`
+	Provider          string    `json:"provider"`
+	ProviderPaymentID string    `json:"provider_payment_id,omitempty"`
+	OccurredAt        time.Time `json:"occurred_at"`
+	Version           int       `json:"version"`
+}
+
+type GetCommand struct {
+	RequestID  string    `json:"request_id"`
+	PaymentID  string    `json:"payment_id"`
 	OccurredAt time.Time `json:"occurred_at"`
 	Version    int       `json:"version"`
 }

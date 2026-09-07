@@ -120,7 +120,7 @@ func toDomainPayment(dbPayment sqlc.Payment) (payment.Payment, error) {
 		Invoice:           dbPayment.Invoice,
 		Status:            payment.Status(dbPayment.Status),
 		Amount:            amount.Int64,
-		Currency:          payment.Carrency(dbPayment.Currency),
+		Currency:          payment.Currency(dbPayment.Currency),
 		Provider:          dbPayment.Provider,
 		ProviderPaymentID: dbPayment.ProviderPaymentID.String,
 		CreatedAt:         dbPayment.CreatedAt.Time,

@@ -3,36 +3,30 @@ package paymenthandler
 import (
 	"context"
 	"log/slog"
-
-	"payment_gateway/internal/payment"
 )
 
-type PaymentService interface {
-	CreatePayment(
+type Publisher interface {
+	Publish(
 		ctx context.Context,
-		input payment.CreateInput,
-	) (payment.Payment, error)
-	GetPaymentByID(
-		ctx context.Context,
-		id string,
-	) (payment.Payment, error)
-	UpdateStatusPaymentByID(
-		ctx context.Context,
-		input payment.StatusUpdateInput,
-	) (payment.Payment, error)
+		key string,
+		message any,
+	) error
 }
 
 type Handler struct {
-	log     *slog.Logger
-	service PaymentService
+	log             *slog.Logger
+	createPublisher Publisher
+	getPublisher    Publisher
 }
 
 func New(
 	log *slog.Logger,
-	service PaymentService,
+	createPublisher Publisher,
+	getPublisher Publisher,
 ) *Handler {
 	return &Handler{
-		log:     log,
-		service: service,
+		log:             log,
+		createPublisher: createPublisher,
+		getPublisher:    getPublisher,
 	}
 }

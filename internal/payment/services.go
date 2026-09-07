@@ -91,7 +91,7 @@ func validStatus(status Status) bool {
 	}
 }
 
-func validCurrency(currency Carrency) bool {
+func validCurrency(currency Currency) bool {
 	switch currency {
 	case Rub, Usd, Eur:
 		return true
