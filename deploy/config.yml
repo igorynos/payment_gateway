@@ -1,0 +1,20 @@
+env: local
+
+http_server:
+  address: "0.0.0.0"
+  port: 9000
+  timeout: 4s
+  idle_timeout: 60s
+
+webhook_server:
+  address: "0.0.0.0"
+  port: 9001
+  timeout: 4s
+  idle_timeout: 60s
+
+kafka:
+  brokers:
+    - kafka:29092
+  payment_status_topic: payment.status-change.requested
+  payment_create_topic: payment.create.requested
+  consumer_group: payment-gateway-worker-v1
