@@ -16,5 +16,4 @@ kafka:
       - localhost:9092
     payment_status_topic: payment.status-change.requested
     payment_create_topic: payment.create.requested
-    payment_get_topic: payment.get.requested
-    consumer_group: payment-status-updater
+    consumer_group: payment-gateway-worker-v1

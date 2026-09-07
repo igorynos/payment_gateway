@@ -89,10 +89,3 @@ type CreateCommand struct {
 	OccurredAt        time.Time `json:"occurred_at"`
 	Version           int       `json:"version"`
 }
-
-type GetCommand struct {
-	RequestID  string    `json:"request_id"`
-	PaymentID  string    `json:"payment_id"`
-	OccurredAt time.Time `json:"occurred_at"`
-	Version    int       `json:"version"`
-}

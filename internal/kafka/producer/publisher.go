@@ -23,13 +23,11 @@ type Publisher struct {
 type Publishers struct {
 	PaymentStatus *Publisher
 	PaymentCreate *Publisher
-	PaymentGet    *Publisher
 }
 
 type PublishersConfig struct {
 	PaymentStatusTopic string
 	PaymentCreateTopic string
-	PaymentGetTopic    string
 }
 
 func (p *Publisher) Publish(
@@ -77,10 +75,6 @@ func NewPublishers(
 		PaymentCreate: NewPublisher(
 			producer,
 			config.PaymentCreateTopic,
-		),
-		PaymentGet: NewPublisher(
-			producer,
-			config.PaymentGetTopic,
 		),
 	}
 }

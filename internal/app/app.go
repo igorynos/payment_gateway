@@ -13,6 +13,7 @@ import (
 	webhookhandler "payment_gateway/internal/http/handler/webhook"
 	httprouter "payment_gateway/internal/http/router"
 	"payment_gateway/internal/kafka/producer"
+	"payment_gateway/internal/payment"
 	"payment_gateway/internal/storage/postgres"
 	"payment_gateway/internal/user"
 )
@@ -39,8 +40,8 @@ func New(
 	userService := user.NewService(userRepository)
 	userHandler := userhandler.New(log, userService)
 
-	//	paymentRepository := postgres.NewPaymentRepository(db)
-	//	paymentService := payment.NewService(paymentRepository)
+	paymentRepository := postgres.NewPaymentRepository(db)
+	paymentService := payment.NewService(paymentRepository)
 
 	kafkaProducerClient, err := producer.NewClient(
 		cfg.Kafka.Brokers,
@@ -57,14 +58,13 @@ func New(
 		producer.PublishersConfig{
 			PaymentStatusTopic: cfg.Kafka.PaymentStatusTopic,
 			PaymentCreateTopic: cfg.Kafka.PaymentCreateTopic,
-			PaymentGetTopic:    cfg.Kafka.PaymentGetTopic,
 		},
 	)
 
 	paymentHandler := paymenthandler.New(
 		log,
 		publishers.PaymentCreate,
-		publishers.PaymentGet,
+		paymentService,
 	)
 
 	webhookHandler := webhookhandler.New(

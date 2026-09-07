@@ -47,7 +47,6 @@ type KafkaConfig struct {
 	Brokers            []string `yaml:"brokers"`
 	PaymentStatusTopic string   `yaml:"payment_status_topic"`
 	PaymentCreateTopic string   `yaml:"payment_create_topic"`
-	PaymentGetTopic    string   `yaml:"payment_get_topic"`
 	ConsumerGroup      string   `yaml:"consumer_group"`
 }
 
