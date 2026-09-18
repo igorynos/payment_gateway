@@ -19,7 +19,9 @@ func main() {
 	}
 
 	cfg := config.LoadConfig()
-	logger := applogger.SettupLogger(cfg.Env)
+	logger := applogger.SettupLogger(cfg.Env).With(
+		slog.String("service", "payment-gateway-api"),
+	)
 
 	application, err := app.New(
 		context.Background(),

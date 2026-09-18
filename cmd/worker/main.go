@@ -35,7 +35,9 @@ func run() error {
 	}
 
 	cfg := config.LoadConfig()
-	logger := applogger.SettupLogger(cfg.Env)
+	logger := applogger.SettupLogger(cfg.Env).With(
+		slog.String("service", "payment-gateway-worker"),
+	)
 
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
